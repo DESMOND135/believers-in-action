@@ -1,0 +1,13 @@
+# Setup Instructions for Believers in Action Platform
+
+# 1. Start Backend (API)
+cd backend
+python -m venv venv
+.\venv\Scripts\Activate
+pip install fastapi uvicorn python-multipart
+python main.py
+
+# 2. Start Frontend (Web)
+cd ..\frontend
+npm install
+npm run dev

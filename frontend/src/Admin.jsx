@@ -1,0 +1,226 @@
+import React, { useState, useEffect } from 'react';
+
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+
+const Admin = ({ onSermonAdded }) => {
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [password, setPassword] = useState('');
+  const [sermons, setSermons] = useState([]);
+  const [title, setTitle] = useState('');
+  const [description, setDescription] = useState('');
+  const [date, setDate] = useState('');
+  const [editId, setEditId] = useState(null);
+  const [uploading, setUploading] = useState(false);
+  const [message, setMessage] = useState('');
+
+  // Fetch sermons for the admin list
+  const fetchSermons = async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/sermons`);
+      const data = await response.json();
+      setSermons(data);
+    } catch (err) {
+      console.error("Error fetching sermons", err);
+    }
+  };
+
+  useEffect(() => {
+    if (isLoggedIn) fetchSermons();
+  }, [isLoggedIn]);
+
+  const handleLogin = (e) => {
+    e.preventDefault();
+    if (password === 'pastor2026') {
+      setIsLoggedIn(true);
+    } else {
+      alert('Unauthorized access. Only Pastor Bah UDRICK NIH can login.');
+    }
+  };
+
+  const handleEdit = (sermon) => {
+    setEditId(sermon.id);
+    setTitle(sermon.title);
+    setDescription(sermon.description);
+    // Format date string for input
+    const d = new Date(sermon.preach_date);
+    const dateStr = !isNaN(d.getTime()) ? d.toISOString().split('T')[0] : '';
+    setDate(dateStr);
+  };
+
+  const cancelEdit = () => {
+    setEditId(null);
+    setTitle('');
+    setDescription('');
+    setDate('');
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setUploading(true);
+    setMessage('');
+
+    try {
+      const endpoint = editId ? `/api/sermons/${editId}` : '/api/upload';
+      const method = editId ? 'PUT' : 'POST';
+      const url = `${API_BASE_URL}${endpoint}?title=${encodeURIComponent(title)}&description=${encodeURIComponent(description)}&preach_date=${encodeURIComponent(date)}`;
+
+      const response = await fetch(url, {
+        method: method,
+        headers: {
+          'X-Admin-Token': password
+        }
+      });
+
+      if (response.ok) {
+        setMessage(editId ? 'Sermon updated successfully!' : 'Sermon published successfully!');
+        cancelEdit();
+        fetchSermons();
+      } else {
+        setMessage('Action failed. Please check your credentials.');
+      }
+    } catch (err) {
+      setMessage('Error connecting to backend.');
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleDelete = async (id) => {
+    if (!window.confirm("Are you sure you want to remove this sermon? This action cannot be undone.")) return;
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/sermons/${id}`, {
+        method: 'DELETE',
+        headers: {
+          'X-Admin-Token': password
+        }
+      });
+
+      if (response.ok) {
+        alert("Sermon removed successfully.");
+        fetchSermons();
+      } else {
+        alert("Failed to delete sermon.");
+      }
+    } catch (err) {
+      alert("Error connecting to backend.");
+    }
+  };
+
+  if (!isLoggedIn) {
+    return (
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '80vh' }}>
+        <div className="glass" style={{ padding: '3rem', width: '400px', textAlign: 'center' }}>
+          <h2 style={{ marginBottom: '2rem' }}>Pastor Bah UDRICK NIH Admin Access</h2>
+          <form onSubmit={handleLogin}>
+            <input 
+              type="password" 
+              placeholder="Enter Private Key" 
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              style={{ width: '100%', padding: '1rem', background: 'rgba(0,0,0,0.5)', border: '1px solid var(--primary-gold)', color: 'white', marginBottom: '1.5rem', borderRadius: '4px' }}
+            />
+            <button className="btn-primary" style={{ width: '100%' }}>Secure Login</button>
+          </form>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="container" style={{ padding: '60px 0' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '3rem' }}>
+        {/* Form Form */}
+        <div className="glass" style={{ padding: '2.5rem' }}>
+          <h2 style={{ fontSize: '1.8rem', marginBottom: '0.5rem' }}>{editId ? 'Edit Sermon Information' : 'Publish New Sermon'}</h2>
+          {editId && <p style={{ fontSize: '0.8rem', color: 'var(--primary-gold)', marginBottom: '1.5rem', cursor: 'pointer' }} onClick={cancelEdit}>&times; Cancel Edit Mode</p>}
+          
+          {message && <div style={{ background: 'rgba(0,255,0,0.1)', border: '1px solid green', padding: '1rem', marginBottom: '2rem', color: '#4ade80' }}>{message}</div>}
+
+          <form onSubmit={handleSubmit}>
+            <div style={{ marginBottom: '1.2rem' }}>
+              <label style={{ display: 'block', marginBottom: '0.5rem', opacity: '0.7' }}>Title</label>
+              <input 
+                type="text" 
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                required
+                style={{ width: '100%', padding: '0.8rem', background: 'rgba(255,255,255,0.05)', border: '1px solid var(--glass-border)', color: 'white', borderRadius: '4px' }}
+              />
+            </div>
+
+            <div style={{ marginBottom: '1.2rem' }}>
+              <label style={{ display: 'block', marginBottom: '0.5rem', opacity: '0.7' }}>Description</label>
+              <textarea 
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                required
+                rows="3"
+                style={{ width: '100%', padding: '0.8rem', background: 'rgba(255,255,255,0.05)', border: '1px solid var(--glass-border)', color: 'white', borderRadius: '4px' }}
+              />
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1.5rem' }}>
+              <div>
+                <label style={{ display: 'block', marginBottom: '0.5rem', opacity: '0.7' }}>Date</label>
+                <input 
+                  type="date" 
+                  value={date}
+                  onChange={(e) => setDate(e.target.value)}
+                  required
+                  style={{ width: '100%', padding: '0.8rem', background: 'rgba(255,255,255,0.05)', border: '1px solid var(--glass-border)', color: 'white', borderRadius: '4px' }}
+                />
+              </div>
+              {!editId && (
+                <div>
+                  <label style={{ display: 'block', marginBottom: '0.5rem', opacity: '0.7' }}>Video</label>
+                  <input type="file" required={!editId} style={{ width: '100%', color: 'white', fontSize: '0.8rem' }} />
+                </div>
+              )}
+            </div>
+
+            <button 
+               className="btn-primary" 
+               style={{ width: '100%', background: uploading ? '#444' : 'var(--primary-gold)' }}
+               disabled={uploading}
+            >
+              {uploading ? 'Processing...' : (editId ? 'Update Sermon' : 'Publish Sermon')}
+            </button>
+          </form>
+        </div>
+
+        {/* Management List */}
+        <div className="glass" style={{ padding: '2.5rem' }}>
+          <h2 style={{ fontSize: '1.8rem', marginBottom: '2rem' }}>Manage Content</h2>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+            {sermons.map(sermon => (
+              <div key={sermon.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1rem', borderBottom: '1px solid var(--glass-border)' }}>
+                <div style={{ maxWidth: '60%' }}>
+                  <div style={{ fontWeight: '600', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{sermon.title}</div>
+                  <div style={{ fontSize: '0.8rem', opacity: '0.6' }}>{sermon.preach_date}</div>
+                </div>
+                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                  <button 
+                    onClick={() => handleEdit(sermon)}
+                    style={{ background: 'rgba(212, 175, 55, 0.1)', color: 'var(--primary-gold)', padding: '0.4rem 0.8rem', borderRadius: '4px', border: '1px solid rgba(212, 175, 55, 0.2)', fontSize: '0.8rem' }}
+                  >
+                    Edit
+                  </button>
+                  <button 
+                    onClick={() => handleDelete(sermon.id)}
+                    style={{ background: 'rgba(255,0,0,0.1)', color: '#ff4d4d', padding: '0.4rem 0.8rem', borderRadius: '4px', border: '1px solid rgba(255,0,0,0.2)', fontSize: '0.8rem' }}
+                  >
+                    Delete
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+
+export default Admin;

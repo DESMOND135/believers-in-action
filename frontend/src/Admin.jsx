@@ -12,6 +12,7 @@ const Admin = ({ onSermonAdded }) => {
   const [editId, setEditId] = useState(null);
   const [uploading, setUploading] = useState(false);
   const [message, setMessage] = useState('');
+  const fileInputRef = React.useRef(null);
 
   // Fetch sermons for the admin list
   const fetchSermons = async () => {
@@ -30,10 +31,10 @@ const Admin = ({ onSermonAdded }) => {
 
   const handleLogin = (e) => {
     e.preventDefault();
-    if (password === 'pastor2026') {
+    if (password === 'udrick2026') {
       setIsLoggedIn(true);
     } else {
-      alert('Unauthorized access. Only Pastor Bah UDRICK NIH can login.');
+      alert('Unauthorized access. Only UDRICK NIH can login.');
     }
   };
 
@@ -60,23 +61,45 @@ const Admin = ({ onSermonAdded }) => {
     setMessage('');
 
     try {
+      const formData = new FormData();
+      formData.append('title', title);
+      formData.append('description', description);
+      formData.append('preach_date', date);
+      
+      if (!editId && fileInputRef.current?.files[0]) {
+        formData.append('file', fileInputRef.current.files[0]);
+      }
+
       const endpoint = editId ? `/api/sermons/${editId}` : '/api/upload';
       const method = editId ? 'PUT' : 'POST';
-      const url = `${API_BASE_URL}${endpoint}?title=${encodeURIComponent(title)}&description=${encodeURIComponent(description)}&preach_date=${encodeURIComponent(date)}`;
+      
+      // For PUT, we'll still use query params as the backend expects them for metadata update
+      // For POST, we use the multipart form data
+      let url = `${API_BASE_URL}${endpoint}`;
+      if (editId) {
+        url += `?title=${encodeURIComponent(title)}&description=${encodeURIComponent(description)}&preach_date=${encodeURIComponent(date)}`;
+      }
 
       const response = await fetch(url, {
         method: method,
         headers: {
           'X-Admin-Token': password
-        }
+        },
+        body: editId ? null : formData
       });
 
       if (response.ok) {
         setMessage(editId ? 'Sermon updated successfully!' : 'Sermon published successfully!');
-        cancelEdit();
+        if (!editId) {
+          setTitle('');
+          setDescription('');
+          setDate('');
+          if (fileInputRef.current) fileInputRef.current.value = '';
+        }
         fetchSermons();
       } else {
-        setMessage('Action failed. Please check your credentials.');
+        const errorData = await response.json();
+        setMessage(`Action failed: ${errorData.detail || 'Check credentials.'}`);
       }
     } catch (err) {
       setMessage('Error connecting to backend.');
@@ -111,7 +134,7 @@ const Admin = ({ onSermonAdded }) => {
     return (
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '80vh' }}>
         <div className="glass" style={{ padding: '3rem', width: '400px', textAlign: 'center' }}>
-          <h2 style={{ marginBottom: '2rem' }}>Pastor Bah UDRICK NIH Admin Access</h2>
+          <h2 style={{ marginBottom: '2rem' }}>UDRICK NIH Admin Access</h2>
           <form onSubmit={handleLogin}>
             <input 
               type="password" 
@@ -174,7 +197,12 @@ const Admin = ({ onSermonAdded }) => {
               {!editId && (
                 <div>
                   <label style={{ display: 'block', marginBottom: '0.5rem', opacity: '0.7' }}>Video</label>
-                  <input type="file" required={!editId} style={{ width: '100%', color: 'white', fontSize: '0.8rem' }} />
+                  <input 
+                    ref={fileInputRef}
+                    type="file" 
+                    required={!editId} 
+                    style={{ width: '100%', color: 'white', fontSize: '0.8rem' }} 
+                  />
                 </div>
               )}
             </div>

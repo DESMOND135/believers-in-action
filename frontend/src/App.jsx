@@ -78,12 +78,18 @@ const App = () => {
             <div className="container animate-up" style={{ textAlign: 'center', padding: '80px 0 80px' }}>
               <img src="/logo.png" alt="BIA Logo" style={{ height: '160px', width: '160px', objectFit: 'contain', marginBottom: '2rem', animation: 'fadeInScale 1s ease-out' }} />
               <h4 style={{ color: 'var(--primary-gold)', letterSpacing: '4px', textTransform: 'uppercase', marginBottom: '1rem', fontSize: '0.9rem' }}>
-                Pastor Bah UDRICK NIH Presents
+                UDRICK NIH Presents
               </h4>
               <h1 style={{ fontSize: '4.5rem', marginBottom: '1.5rem', lineHeight: '1.1' }}>
                 2026: Our Year of <br />
                 <span style={{ color: 'var(--primary-gold)' }}>Showers of Blessing</span>
               </h1>
+              {new Date().getDay() === 0 && (
+                <div style={{ marginBottom: '2rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
+                  <span style={{ width: '10px', height: '10px', background: '#ff4d4d', borderRadius: '50%', boxShadow: '0 0 10px #ff4d4d', animation: 'pulse 1.5s infinite' }}></span>
+                  <span style={{ fontSize: '0.9rem', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '2px', color: '#ff4d4d' }}>Live Service in Progress</span>
+                </div>
+              )}
               <div style={{ fontStyle: 'italic', marginBottom: '2.5rem', fontSize: '1.2rem', color: 'var(--soft-cream)', opacity: '0.9' }}>
                 "Ezekiel 24:24-30"
               </div>
@@ -115,7 +121,18 @@ const App = () => {
                     <div style={{ padding: '2rem' }}>
                       <span style={{ fontSize: '0.8rem', color: 'var(--primary-gold)', fontWeight: '600' }}>{sermon.preach_date}</span>
                       <h3 style={{ fontSize: '1.6rem', margin: '0.5rem 0' }}>{sermon.title}</h3>
-                      <p style={{ fontSize: '0.95rem', opacity: '0.7', display: '-webkit-box', WebkitLineClamp: '2', WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{sermon.description}</p>
+                      <p style={{ fontSize: '0.95rem', opacity: '0.7', display: '-webkit-box', WebkitLineClamp: '2', WebkitBoxOrient: 'vertical', overflow: 'hidden', marginBottom: '1.5rem' }}>{sermon.description}</p>
+                      <div style={{ display: 'flex', gap: '1rem' }}>
+                        <button className="btn-primary" style={{ padding: '0.5rem 1rem', fontSize: '0.75rem' }} onClick={(e) => { e.stopPropagation(); setSelectedVideo(sermon.video_url); }}>Watch Now</button>
+                        <a 
+                          href={sermon.download_url} 
+                          download 
+                          onClick={(e) => e.stopPropagation()}
+                          style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--soft-cream)', opacity: '0.6', textDecoration: 'none', fontSize: '0.8rem', fontWeight: '600' }}
+                        >
+                          <span>⬇️ Download</span>
+                        </a>
+                      </div>
                     </div>
                   </div>
                 ))
@@ -143,7 +160,7 @@ const App = () => {
         <p style={{ marginBottom: '0.5rem', color: 'var(--primary-gold)', fontSize: '0.85rem', letterSpacing: '2px' }}>BELIEVERS IN ACTION</p>
         <p style={{ marginBottom: '0.5rem', fontSize: '0.8rem', opacity: '0.5', fontStyle: 'italic' }}>Mark 16:15 · Matt 28:19</p>
         <p style={{ marginBottom: '1rem' }}>📞 Contact Pastor: 678051791</p>
-        <p style={{ fontSize: '0.9rem', opacity: '0.5' }}>&copy; 2026 Believers in Action. Pastor Bah UDRICK NIH. All Rights Reserved.</p>
+        <p style={{ fontSize: '0.9rem', opacity: '0.5' }}>&copy; 2026 Believers in Action. UDRICK NIH. All Rights Reserved.</p>
       </footer>
     </div>
   );

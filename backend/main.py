@@ -19,7 +19,7 @@ app.add_middleware(
 )
 
 # --- Security ---
-SECRET_ADMIN_TOKEN = "udrick2026" # Updated token for UDRICK NIH
+SECRET_ADMIN_TOKEN = os.getenv("ADMIN_TOKEN", "udrick2026") # Securely load from ENV
 
 def verify_admin_token(x_admin_token: str = Header(...)):
     """Verifies that the request comes from UDRICK NIH."""

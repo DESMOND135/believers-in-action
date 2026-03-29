@@ -31,7 +31,8 @@ const Admin = ({ onSermonAdded }) => {
 
   const handleLogin = (e) => {
     e.preventDefault();
-    if (password === 'udrick2026') {
+    const adminToken = import.meta.env.VITE_ADMIN_TOKEN || 'udrick2026';
+    if (password === adminToken) {
       setIsLoggedIn(true);
     } else {
       alert('Unauthorized access. Only UDRICK NIH can login.');

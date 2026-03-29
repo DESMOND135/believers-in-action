@@ -54,11 +54,14 @@ const App = () => {
       <header className="glass" style={{ position: 'sticky', top: 0, zIndex: 100 }}>
         <nav className="container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', height: '80px' }}>
           <div 
-            className="logo" 
             onClick={() => setView('home')}
-            style={{ fontSize: '1.5rem', fontWeight: '800', letterSpacing: '2px', color: 'var(--primary-gold)', cursor: 'pointer' }}
+            style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '1rem' }}
           >
-            BELIEVERS <span style={{ color: 'var(--soft-cream)' }}>IN ACTION</span>
+            <img src="/logo.png" alt="Believers in Action Logo" style={{ height: '60px', width: '60px', objectFit: 'contain' }} />
+            <div>
+              <div style={{ fontSize: '1.1rem', fontWeight: '800', letterSpacing: '2px', color: 'var(--primary-gold)', lineHeight: '1.1' }}>BELIEVERS IN ACTION</div>
+              <div style={{ fontSize: '0.65rem', color: 'var(--soft-cream)', opacity: '0.6', letterSpacing: '1px' }}>Mark 16:15 · Matt 28:19</div>
+            </div>
           </div>
           <div className="nav-links" style={{ display: 'flex', gap: '2rem', fontSize: '0.85rem', fontWeight: '500', textTransform: 'uppercase', alignItems: 'center' }}>
             <button onClick={() => setView('home')} style={{ color: 'var(--soft-cream)', background: 'none', textDecoration: view === 'home' ? 'underline' : 'none', fontWeight: view === 'home' ? '700' : '400' }}>Home</button>
@@ -72,7 +75,8 @@ const App = () => {
         <>
           {/* Hero Section */}
           <section className="hero">
-            <div className="container animate-up" style={{ textAlign: 'center', padding: '120px 0 80px' }}>
+            <div className="container animate-up" style={{ textAlign: 'center', padding: '80px 0 80px' }}>
+              <img src="/logo.png" alt="BIA Logo" style={{ height: '160px', width: '160px', objectFit: 'contain', marginBottom: '2rem', animation: 'fadeInScale 1s ease-out' }} />
               <h4 style={{ color: 'var(--primary-gold)', letterSpacing: '4px', textTransform: 'uppercase', marginBottom: '1rem', fontSize: '0.9rem' }}>
                 Pastor Bah UDRICK NIH Presents
               </h4>
@@ -135,6 +139,9 @@ const App = () => {
 
       {/* Footer */}
       <footer style={{ borderTop: '1px solid var(--glass-border)', padding: '60px 0', textAlign: 'center' }}>
+        <img src="/logo.png" alt="BIA Logo" style={{ height: '80px', width: '80px', objectFit: 'contain', marginBottom: '1.5rem', opacity: '0.8' }} />
+        <p style={{ marginBottom: '0.5rem', color: 'var(--primary-gold)', fontSize: '0.85rem', letterSpacing: '2px' }}>BELIEVERS IN ACTION</p>
+        <p style={{ marginBottom: '0.5rem', fontSize: '0.8rem', opacity: '0.5', fontStyle: 'italic' }}>Mark 16:15 · Matt 28:19</p>
         <p style={{ marginBottom: '1rem' }}>📞 Contact Pastor: 678051791</p>
         <p style={{ fontSize: '0.9rem', opacity: '0.5' }}>&copy; 2026 Believers in Action. Pastor Bah UDRICK NIH. All Rights Reserved.</p>
       </footer>

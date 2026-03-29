@@ -129,13 +129,21 @@ async def upload_sermon(
     title: str = Form(...),
     description: str = Form(...),
     preach_date: str = Form(...),
-    video_url: str = Form(...),
+    file: UploadFile = File(...),
     token: str = Depends(verify_admin_token)
 ):
-    """Securely publish a sermon directly from a YouTube Link."""
+    """Securely upload a new sermon video."""
     new_id = str(len(MOCK_SERMONS) + 1)
     created_at = datetime.now()
+    file_extension = file.filename.split(".")[-1]
+    unique_filename = f"{uuid.uuid4()}.{file_extension}"
+    file_path = f"uploads/{unique_filename}"
     
+    with open(file_path, "wb") as buffer:
+        shutil.copyfileobj(file.file, buffer)
+
+    base_url = str(request.base_url).rstrip('/')
+    video_url = f"{base_url}/uploads/{unique_filename}"
     download_url = video_url
     thumbnail_url = "https://images.unsplash.com/photo-1507679799987-c7377ec486b6?auto=format&fit=crop&q=80&w=640"
 

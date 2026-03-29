@@ -9,10 +9,10 @@ const Admin = ({ onSermonAdded }) => {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [date, setDate] = useState('');
-  const [videoUrl, setVideoUrl] = useState('');
   const [editId, setEditId] = useState(null);
   const [uploading, setUploading] = useState(false);
   const [message, setMessage] = useState('');
+  const fileInputRef = React.useRef(null);
 
   // Fetch sermons for the admin list
   const fetchSermons = async () => {
@@ -54,7 +54,6 @@ const Admin = ({ onSermonAdded }) => {
     setTitle('');
     setDescription('');
     setDate('');
-    setVideoUrl('');
   };
 
   const handleSubmit = async (e) => {
@@ -68,13 +67,8 @@ const Admin = ({ onSermonAdded }) => {
       formData.append('description', description);
       formData.append('preach_date', date);
       
-      if (!editId) {
-        if (!videoUrl) {
-           setMessage("Please provide a YouTube URL.");
-           setUploading(false);
-           return;
-        }
-        formData.append('video_url', videoUrl);
+      if (!editId && fileInputRef.current?.files[0]) {
+        formData.append('file', fileInputRef.current.files[0]);
       }
 
       const endpoint = editId ? `/api/sermons/${editId}` : '/api/upload';
@@ -101,7 +95,7 @@ const Admin = ({ onSermonAdded }) => {
           setTitle('');
           setDescription('');
           setDate('');
-          setVideoUrl('');
+          if (fileInputRef.current) fileInputRef.current.value = '';
         }
         fetchSermons();
       } else {
@@ -203,14 +197,12 @@ const Admin = ({ onSermonAdded }) => {
               </div>
               {!editId && (
                 <div>
-                  <label style={{ display: 'block', marginBottom: '0.5rem', opacity: '0.7' }}>YouTube Video Link</label>
+                  <label style={{ display: 'block', marginBottom: '0.5rem', opacity: '0.7' }}>Video</label>
                   <input 
-                    type="url" 
-                    value={videoUrl}
-                    onChange={(e) => setVideoUrl(e.target.value)}
-                    placeholder="https://youtube.com/watch?v=..."
+                    ref={fileInputRef}
+                    type="file" 
                     required={!editId} 
-                    style={{ width: '100%', padding: '0.8rem', background: 'rgba(255,255,255,0.05)', border: '1px solid var(--glass-border)', color: 'white', borderRadius: '4px' }}
+                    style={{ width: '100%', color: 'white', fontSize: '0.8rem' }} 
                   />
                 </div>
               )}

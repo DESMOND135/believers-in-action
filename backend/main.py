@@ -1,13 +1,19 @@
-from fastapi import FastAPI, File, UploadFile, Depends, HTTPException, status, Header, Form
+from fastapi import FastAPI, File, UploadFile, Depends, HTTPException, status, Header, Form, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 from typing import List, Optional
 import os
+import shutil
+import uuid
 from datetime import datetime
 import mysql.connector
 from mysql.connector import Error
 
 app = FastAPI(title="Believers in Action: Sermon Platform (UDRICK NIH)")
+
+os.makedirs("uploads", exist_ok=True)
+app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
 
 # CORS setup for React frontend
 app.add_middleware(
@@ -91,7 +97,6 @@ MOCK_SERMONS = [
         "download_url": "https://www.w3schools.com/html/mov_bbb.mp4",
         "thumbnail_url": "https://images.unsplash.com/photo-1544427928-c49cd03d3600?auto=format&fit=crop&q=80&w=640",
         "preach_date": "March 22, 2026",
-        "created_at": str(datetime.now())
     },
     {
         "id": "2",
@@ -101,7 +106,6 @@ MOCK_SERMONS = [
         "download_url": "https://www.w3schools.com/html/movie.mp4",
         "thumbnail_url": "https://images.unsplash.com/photo-1493612276216-ee3925520721?auto=format&fit=crop&q=80&w=640",
         "preach_date": "March 29, 2026",
-        "created_at": str(datetime.now())
     }
 ]
 
@@ -121,18 +125,25 @@ async def get_sermons():
 
 @app.post("/api/upload")
 async def upload_sermon(
-    title: str = Form(...), 
-    description: str = Form(...), 
-    preach_date: str = Form(...), 
+    request: Request,
+    title: str = Form(...),
+    description: str = Form(...),
+    preach_date: str = Form(...),
     file: UploadFile = File(...),
     token: str = Depends(verify_admin_token)
 ):
     """Securely upload a new sermon video."""
     new_id = str(len(MOCK_SERMONS) + 1)
     created_at = datetime.now()
+    file_extension = file.filename.split(".")[-1]
+    unique_filename = f"{uuid.uuid4()}.{file_extension}"
+    file_path = f"uploads/{unique_filename}"
     
-    # Simulate video/download URLs for demo
-    video_url = "https://www.w3schools.com/html/mov_bbb.mp4"
+    with open(file_path, "wb") as buffer:
+        shutil.copyfileobj(file.file, buffer)
+
+    base_url = str(request.base_url).rstrip('/')
+    video_url = f"{base_url}/uploads/{unique_filename}"
     download_url = video_url
     thumbnail_url = "https://images.unsplash.com/photo-1507679799987-c7377ec486b6?auto=format&fit=crop&q=80&w=640"
 

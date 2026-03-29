@@ -10,11 +10,42 @@ const App = () => {
   const [loading, setLoading] = useState(true);
   const [selectedVideo, setSelectedVideo] = useState(null);
 
-  // Simulated Fetch (Will connect to Backend later)
+  // Handle native back button navigation
+  useEffect(() => {
+    const handlePopState = (e) => {
+      if (selectedVideo) {
+        setSelectedVideo(null);
+      } else if (e.state && e.state.view) {
+        setView(e.state.view);
+      } else {
+        setView('home');
+      }
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, [selectedVideo]);
+
+  const navigateTo = (newView) => {
+    if (newView !== view) {
+      window.history.pushState({ view: newView }, '');
+      setView(newView);
+    }
+  };
+
+  const handleOpenVideo = (videoUrl) => {
+    window.history.pushState({ videoOpen: true }, '');
+    setSelectedVideo(videoUrl);
+  };
+
+  const handleCloseVideo = () => {
+    window.history.back(); // Pops the state, triggering handlePopState to close the video
+  };
+
+  // Fetch Sermons from Backend
   useEffect(() => {
     const fetchSermons = async () => {
       try {
-        const response = await fetch('http://localhost:8000/api/sermons');
+        const response = await fetch(`${API_BASE_URL}/api/sermons`);
         if (response.ok) {
           const data = await response.json();
           setSermons(data);
@@ -54,7 +85,7 @@ const App = () => {
       <header className="glass" style={{ position: 'sticky', top: 0, zIndex: 100 }}>
         <nav className="container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', height: '80px' }}>
           <div 
-            onClick={() => setView('home')}
+            onClick={() => navigateTo('home')}
             style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '1rem' }}
           >
             <img src="/logo.png" alt="Believers in Action Logo" style={{ height: '60px', width: '60px', objectFit: 'contain' }} />
@@ -64,8 +95,8 @@ const App = () => {
             </div>
           </div>
           <div className="nav-links" style={{ display: 'flex', gap: '2rem', fontSize: '0.85rem', fontWeight: '500', textTransform: 'uppercase', alignItems: 'center' }}>
-            <button onClick={() => setView('home')} style={{ color: 'var(--soft-cream)', background: 'none', textDecoration: view === 'home' ? 'underline' : 'none', fontWeight: view === 'home' ? '700' : '400' }}>Home</button>
-            <button onClick={() => setView('admin')} style={{ color: 'var(--soft-cream)', background: 'none', textDecoration: view === 'admin' ? 'underline' : 'none', fontWeight: view === 'admin' ? '700' : '400' }}>Pastor's Admin</button>
+            <button onClick={() => navigateTo('home')} style={{ color: 'var(--soft-cream)', background: 'none', textDecoration: view === 'home' ? 'underline' : 'none', fontWeight: view === 'home' ? '700' : '400' }}>Home</button>
+            <button onClick={() => navigateTo('admin')} style={{ color: 'var(--soft-cream)', background: 'none', textDecoration: view === 'admin' ? 'underline' : 'none', fontWeight: view === 'admin' ? '700' : '400' }}>Pastor's Admin</button>
             <span style={{ color: 'var(--primary-gold)', borderLeft: '1px solid var(--glass-border)', paddingLeft: '1.5rem' }}>📞 678051791</span>
           </div>
         </nav>
@@ -109,7 +140,7 @@ const App = () => {
                 <p>Gathering the blessings...</p>
               ) : (
                 sermons.map(sermon => (
-                  <div key={sermon.id} className="glass card animate-scale" style={{ overflow: 'hidden', cursor: 'pointer' }} onClick={() => setSelectedVideo(sermon.video_url)}>
+                  <div key={sermon.id} className="glass card animate-scale" style={{ overflow: 'hidden', cursor: 'pointer' }} onClick={() => handleOpenVideo(sermon.video_url)}>
                     <div style={{ position: 'relative', height: '220px' }}>
                       <img src={sermon.thumbnail_url} alt={sermon.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                       <div className="play-overlay" style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', background: 'rgba(0,0,0,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: '0.3s' }}>
@@ -123,7 +154,7 @@ const App = () => {
                       <h3 style={{ fontSize: '1.6rem', margin: '0.5rem 0' }}>{sermon.title}</h3>
                       <p style={{ fontSize: '0.95rem', opacity: '0.7', display: '-webkit-box', WebkitLineClamp: '2', WebkitBoxOrient: 'vertical', overflow: 'hidden', marginBottom: '1.5rem' }}>{sermon.description}</p>
                       <div style={{ display: 'flex', gap: '1rem' }}>
-                        <button className="btn-primary" style={{ padding: '0.5rem 1rem', fontSize: '0.75rem' }} onClick={(e) => { e.stopPropagation(); setSelectedVideo(sermon.video_url); }}>Watch Now</button>
+                        <button className="btn-primary" style={{ padding: '0.5rem 1rem', fontSize: '0.75rem' }} onClick={(e) => { e.stopPropagation(); handleOpenVideo(sermon.video_url); }}>Watch Now</button>
                         <a 
                           href={sermon.download_url} 
                           download 
@@ -141,15 +172,41 @@ const App = () => {
           </section>
         </>
       ) : (
-        <Admin onSermonAdded={() => setView('home')} />
+        <Admin onSermonAdded={() => navigateTo('home')} />
       )}
 
-      {/* Video Modal */}
+      {/* Floating Video Mini-Player */}
       {selectedVideo && (
-        <div className="modal" style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', background: 'rgba(0,0,0,0.9)', zIndex: '1000', display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={() => setSelectedVideo(null)}>
-           <div className="container" style={{ position: 'relative', width: '90%', maxWidth: '1000px' }} onClick={e => e.stopPropagation()}>
-              <video src={selectedVideo} controls autoPlay style={{ width: '100%', borderRadius: '12px' }} />
-              <button onClick={() => setSelectedVideo(null)} style={{ position: 'absolute', top: '-50px', right: '0', color: 'white', background: 'none', fontSize: '2rem' }}>&times;</button>
+        <div className="floating-player" style={{ position: 'fixed', bottom: '20px', right: '20px', width: '350px', maxWidth: '90vw', background: 'rgba(20, 20, 20, 0.95)', border: '1px solid var(--primary-gold)', zIndex: '1000', borderRadius: '12px', padding: '15px', boxShadow: '0 10px 30px rgba(0,0,0,0.8)', display: 'flex', flexDirection: 'column' }}>
+           
+           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+              <span style={{ color: 'var(--primary-gold)', fontSize: '0.9rem', fontWeight: 'bold', letterSpacing: '1px' }}>NOW PLAYING</span>
+              <button onClick={handleCloseVideo} style={{ border: 'none', background: 'rgba(255,255,255,0.1)', color: 'white', borderRadius: '50%', width: '30px', height: '30px', fontSize: '1.2rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>&times;</button>
+           </div>
+           
+           <video src={selectedVideo} controls autoPlay playsInline style={{ width: '100%', borderRadius: '8px', objectFit: 'contain', maxHeight: '200px', backgroundColor: 'black' }} />
+           
+           <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '12px', width: '100%' }}>
+               <button 
+                 onClick={(e) => {
+                   e.stopPropagation();
+                   const currentIndex = sermons.findIndex(s => s.video_url === selectedVideo);
+                   if (currentIndex > 0) setSelectedVideo(sermons[currentIndex - 1].video_url);
+                 }} 
+                 style={{ padding: '0.5rem 1rem', background: 'rgba(212, 175, 55, 0.2)', color: 'var(--primary-gold)', border: '1px solid rgba(212, 175, 55, 0.3)', borderRadius: '6px', cursor: 'pointer', opacity: sermons.findIndex(s => s.video_url === selectedVideo) > 0 ? 1 : 0.3, pointerEvents: sermons.findIndex(s => s.video_url === selectedVideo) > 0 ? 'auto' : 'none', fontWeight: 'bold', fontSize: '0.8rem' }}
+               >
+                 &#8592; Prev
+               </button>
+               <button 
+                 onClick={(e) => {
+                   e.stopPropagation();
+                   const currentIndex = sermons.findIndex(s => s.video_url === selectedVideo);
+                   if (currentIndex < sermons.length - 1) setSelectedVideo(sermons[currentIndex + 1].video_url);
+                 }} 
+                 style={{ padding: '0.5rem 1rem', background: 'rgba(212, 175, 55, 0.2)', color: 'var(--primary-gold)', border: '1px solid rgba(212, 175, 55, 0.3)', borderRadius: '6px', cursor: 'pointer', opacity: sermons.findIndex(s => s.video_url === selectedVideo) < sermons.length - 1 ? 1 : 0.3, pointerEvents: sermons.findIndex(s => s.video_url === selectedVideo) < sermons.length - 1 ? 'auto' : 'none', fontWeight: 'bold', fontSize: '0.8rem' }}
+               >
+                 Next &#8594;
+               </button>
            </div>
         </div>
       )}

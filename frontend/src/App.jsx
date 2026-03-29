@@ -27,13 +27,13 @@ const App = () => {
 
   const navigateTo = (newView) => {
     if (newView !== view) {
-      window.history.pushState({ view: newView }, '');
+      window.history.pushState({ view: newView }, '', window.location.pathname);
       setView(newView);
     }
   };
 
   const handleOpenVideo = (videoUrl) => {
-    window.history.pushState({ videoOpen: true }, '');
+    window.history.pushState({ videoOpen: true }, '', window.location.pathname);
     setSelectedVideo(videoUrl);
   };
 
@@ -72,6 +72,24 @@ const App = () => {
         }
       } catch (error) {
         console.error("Fetch error, using mock data", error);
+        setSermons([
+          {
+            id: "1",
+            title: "The Power of Faith",
+            description: "A powerful sermon exploring how faith can move mountains and transform lives.",
+            video_url: "https://www.w3schools.com/html/mov_bbb.mp4",
+            thumbnail_url: "https://images.unsplash.com/photo-1544427928-c49cd03d3600?auto=format&fit=crop&q=80&w=640",
+            preach_date: "March 22, 2026",
+          },
+          {
+            id: "2",
+            title: "Showers of Blessing",
+            description: "Dive deep into our 2026 motto and discover the promise of divine abundance.",
+            video_url: "https://www.w3schools.com/html/movie.mp4",
+            thumbnail_url: "https://images.unsplash.com/photo-1493612276216-ee3925520721?auto=format&fit=crop&q=80&w=640",
+            preach_date: "March 29, 2026",
+          }
+        ]);
       } finally {
         setLoading(false);
       }
@@ -175,39 +193,44 @@ const App = () => {
         <Admin onSermonAdded={() => navigateTo('home')} />
       )}
 
-      {/* Floating Video Mini-Player */}
+      {/* Video Modal Player */}
       {selectedVideo && (
-        <div className="floating-player" style={{ position: 'fixed', bottom: '20px', right: '20px', width: '350px', maxWidth: '90vw', background: 'rgba(20, 20, 20, 0.95)', border: '1px solid var(--primary-gold)', zIndex: '1000', borderRadius: '12px', padding: '15px', boxShadow: '0 10px 30px rgba(0,0,0,0.8)', display: 'flex', flexDirection: 'column' }}>
-           
-           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-              <span style={{ color: 'var(--primary-gold)', fontSize: '0.9rem', fontWeight: 'bold', letterSpacing: '1px' }}>NOW PLAYING</span>
-              <button onClick={handleCloseVideo} style={{ border: 'none', background: 'rgba(255,255,255,0.1)', color: 'white', borderRadius: '50%', width: '30px', height: '30px', fontSize: '1.2rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>&times;</button>
-           </div>
-           
-           <video src={selectedVideo} controls autoPlay playsInline style={{ width: '100%', borderRadius: '8px', objectFit: 'contain', maxHeight: '200px', backgroundColor: 'black' }} />
-           
-           <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '12px', width: '100%' }}>
-               <button 
-                 onClick={(e) => {
-                   e.stopPropagation();
-                   const currentIndex = sermons.findIndex(s => s.video_url === selectedVideo);
-                   if (currentIndex > 0) setSelectedVideo(sermons[currentIndex - 1].video_url);
-                 }} 
-                 style={{ padding: '0.5rem 1rem', background: 'rgba(212, 175, 55, 0.2)', color: 'var(--primary-gold)', border: '1px solid rgba(212, 175, 55, 0.3)', borderRadius: '6px', cursor: 'pointer', opacity: sermons.findIndex(s => s.video_url === selectedVideo) > 0 ? 1 : 0.3, pointerEvents: sermons.findIndex(s => s.video_url === selectedVideo) > 0 ? 'auto' : 'none', fontWeight: 'bold', fontSize: '0.8rem' }}
-               >
-                 &#8592; Prev
-               </button>
-               <button 
-                 onClick={(e) => {
-                   e.stopPropagation();
-                   const currentIndex = sermons.findIndex(s => s.video_url === selectedVideo);
-                   if (currentIndex < sermons.length - 1) setSelectedVideo(sermons[currentIndex + 1].video_url);
-                 }} 
-                 style={{ padding: '0.5rem 1rem', background: 'rgba(212, 175, 55, 0.2)', color: 'var(--primary-gold)', border: '1px solid rgba(212, 175, 55, 0.3)', borderRadius: '6px', cursor: 'pointer', opacity: sermons.findIndex(s => s.video_url === selectedVideo) < sermons.length - 1 ? 1 : 0.3, pointerEvents: sermons.findIndex(s => s.video_url === selectedVideo) < sermons.length - 1 ? 'auto' : 'none', fontWeight: 'bold', fontSize: '0.8rem' }}
-               >
-                 Next &#8594;
-               </button>
-           </div>
+        <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', background: 'rgba(0, 0, 0, 0.85)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(10px)' }}>
+          <div style={{ position: 'relative', width: '90%', maxWidth: '1000px', background: '#111', borderRadius: '12px', border: '1px solid var(--primary-gold)', boxShadow: '0 20px 50px rgba(0,0,0,0.8)', display: 'flex', flexDirection: 'column' }}>
+            
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '15px 20px', borderBottom: '1px solid rgba(212, 175, 55, 0.2)' }}>
+              <span style={{ color: 'var(--primary-gold)', fontSize: '1rem', fontWeight: 'bold', letterSpacing: '2px' }}>NOW PLAYING</span>
+              <button onClick={handleCloseVideo} style={{ border: 'none', background: 'rgba(255,255,255,0.1)', color: 'white', borderRadius: '50%', width: '36px', height: '36px', fontSize: '1.5rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background 0.3s' }}>&times;</button>
+            </div>
+            
+            <div style={{ padding: '20px', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+              <video src={selectedVideo} controls autoPlay playsInline style={{ width: '100%', maxHeight: '60vh', borderRadius: '8px', backgroundColor: 'black', objectFit: 'contain' }} />
+            </div>
+            
+            <div style={{ display: 'flex', justifyContent: 'space-between', padding: '15px 20px', borderTop: '1px solid rgba(212, 175, 55, 0.2)', backgroundColor: 'rgba(0,0,0,0.5)', borderRadius: '0 0 12px 12px' }}>
+                <button 
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    const currentIndex = sermons.findIndex(s => s.video_url === selectedVideo);
+                    if (currentIndex > 0) setSelectedVideo(sermons[currentIndex - 1].video_url);
+                  }} 
+                  style={{ padding: '0.6rem 1.2rem', background: 'rgba(212, 175, 55, 0.15)', color: 'var(--primary-gold)', border: '1px solid rgba(212, 175, 55, 0.3)', borderRadius: '6px', cursor: 'pointer', opacity: sermons.findIndex(s => s.video_url === selectedVideo) > 0 ? 1 : 0.3, pointerEvents: sermons.findIndex(s => s.video_url === selectedVideo) > 0 ? 'auto' : 'none', fontWeight: 'bold', fontSize: '0.9rem', transition: '0.3s' }}
+                >
+                  &#8592; Previous Video
+                </button>
+                <button 
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    const currentIndex = sermons.findIndex(s => s.video_url === selectedVideo);
+                    if (currentIndex < sermons.length - 1) setSelectedVideo(sermons[currentIndex + 1].video_url);
+                  }} 
+                  style={{ padding: '0.6rem 1.2rem', background: 'rgba(212, 175, 55, 0.15)', color: 'var(--primary-gold)', border: '1px solid rgba(212, 175, 55, 0.3)', borderRadius: '6px', cursor: 'pointer', opacity: sermons.findIndex(s => s.video_url === selectedVideo) < sermons.length - 1 ? 1 : 0.3, pointerEvents: sermons.findIndex(s => s.video_url === selectedVideo) < sermons.length - 1 ? 'auto' : 'none', fontWeight: 'bold', fontSize: '0.9rem', transition: '0.3s' }}
+                >
+                  Next Video &#8594;
+                </button>
+            </div>
+
+          </div>
         </div>
       )}
 

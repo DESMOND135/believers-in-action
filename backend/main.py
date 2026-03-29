@@ -19,7 +19,7 @@ app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
-    allow_credentials=True,
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -97,6 +97,7 @@ MOCK_SERMONS = [
         "download_url": "https://www.w3schools.com/html/mov_bbb.mp4",
         "thumbnail_url": "https://images.unsplash.com/photo-1544427928-c49cd03d3600?auto=format&fit=crop&q=80&w=640",
         "preach_date": "March 22, 2026",
+        "created_at": "2026-03-22T10:00:00Z"
     },
     {
         "id": "2",
@@ -106,6 +107,7 @@ MOCK_SERMONS = [
         "download_url": "https://www.w3schools.com/html/movie.mp4",
         "thumbnail_url": "https://images.unsplash.com/photo-1493612276216-ee3925520721?auto=format&fit=crop&q=80&w=640",
         "preach_date": "March 29, 2026",
+        "created_at": "2026-03-29T10:00:00Z"
     }
 ]
 
@@ -142,7 +144,10 @@ async def upload_sermon(
     with open(file_path, "wb") as buffer:
         shutil.copyfileobj(file.file, buffer)
 
-    base_url = str(request.base_url).rstrip('/')
+    # Use RENDER_EXTERNAL_URL if deployed on Render, otherwise custom DOMAIN override, or fallback to request base url
+    external_url = os.getenv("RENDER_EXTERNAL_URL", os.getenv("DOMAIN_NAME", str(request.base_url).rstrip('/')))
+    base_url = external_url.rstrip('/')
+    
     video_url = f"{base_url}/uploads/{unique_filename}"
     download_url = video_url
     thumbnail_url = "https://images.unsplash.com/photo-1507679799987-c7377ec486b6?auto=format&fit=crop&q=80&w=640"

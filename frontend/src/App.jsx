@@ -184,7 +184,24 @@ const App = () => {
               <button onClick={handleCloseVideo} style={{ border: 'none', background: 'rgba(255,255,255,0.1)', color: 'white', borderRadius: '50%', width: '30px', height: '30px', fontSize: '1.2rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>&times;</button>
            </div>
            
-           <video src={selectedVideo} controls autoPlay playsInline style={{ width: '100%', borderRadius: '8px', objectFit: 'contain', maxHeight: '200px', backgroundColor: 'black' }} />
+           {(() => {
+             const isYouTube = selectedVideo.includes('youtube.com') || selectedVideo.includes('youtu.be');
+             const embedUrl = isYouTube ? selectedVideo.replace('watch?v=', 'embed/').replace('youtu.be/', 'youtube.com/embed/').split('&')[0] : selectedVideo;
+             
+             return isYouTube ? (
+               <iframe 
+                 width="100%" 
+                 height="200" 
+                 src={embedUrl} 
+                 title="YouTube video player" 
+                 style={{ borderRadius: '8px', border: 'none', backgroundColor: 'black' }} 
+                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                 allowFullScreen
+               ></iframe>
+             ) : (
+               <video src={selectedVideo} controls autoPlay playsInline style={{ width: '100%', borderRadius: '8px', objectFit: 'contain', maxHeight: '200px', backgroundColor: 'black' }} />
+             );
+           })()}
            
            <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '12px', width: '100%' }}>
                <button 

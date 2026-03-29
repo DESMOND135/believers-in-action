@@ -1,4 +1,4 @@
-from fastapi import FastAPI, File, UploadFile, Depends, HTTPException, status, Header
+from fastapi import FastAPI, File, UploadFile, Depends, HTTPException, status, Header, Form
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import List, Optional
@@ -91,6 +91,7 @@ MOCK_SERMONS = [
         "download_url": "https://www.w3schools.com/html/mov_bbb.mp4",
         "thumbnail_url": "https://images.unsplash.com/photo-1544427928-c49cd03d3600?auto=format&fit=crop&q=80&w=640",
         "preach_date": "March 22, 2026",
+        "created_at": str(datetime.now())
     },
     {
         "id": "2",
@@ -100,6 +101,7 @@ MOCK_SERMONS = [
         "download_url": "https://www.w3schools.com/html/movie.mp4",
         "thumbnail_url": "https://images.unsplash.com/photo-1493612276216-ee3925520721?auto=format&fit=crop&q=80&w=640",
         "preach_date": "March 29, 2026",
+        "created_at": str(datetime.now())
     }
 ]
 
@@ -119,9 +121,9 @@ async def get_sermons():
 
 @app.post("/api/upload")
 async def upload_sermon(
-    title: str, 
-    description: str, 
-    preach_date: str, 
+    title: str = Form(...), 
+    description: str = Form(...), 
+    preach_date: str = Form(...), 
     file: UploadFile = File(...),
     token: str = Depends(verify_admin_token)
 ):

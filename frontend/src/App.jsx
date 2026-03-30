@@ -8,6 +8,7 @@ const App = () => {
   const [view, setView] = useState('home'); // 'home' or 'admin' 
   const [sermons, setSermons] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [isOffline, setIsOffline] = useState(false);
   const [selectedVideo, setSelectedVideo] = useState(null);
 
   // Handle native back button navigation
@@ -49,7 +50,9 @@ const App = () => {
         if (response.ok) {
           const data = await response.json();
           setSermons(data);
+          setIsOffline(false);
         } else {
+          setIsOffline(true);
           // Fallback to mock if backend is not running
           setSermons([
             {
@@ -72,6 +75,7 @@ const App = () => {
         }
       } catch (error) {
         console.error("Fetch error, using mock data", error);
+        setIsOffline(true);
         setSermons([
           {
             id: "1",
@@ -113,6 +117,11 @@ const App = () => {
             </div>
           </div>
           <div className="nav-links" style={{ display: 'flex', gap: '2rem', fontSize: '0.85rem', fontWeight: '500', textTransform: 'uppercase', alignItems: 'center' }}>
+            {isOffline && (
+              <span style={{ fontSize: '0.65rem', color: '#ff4d4d', background: 'rgba(255, 77, 77, 0.1)', padding: '4px 8px', borderRadius: '4px', border: '1px solid rgba(255, 77, 77, 0.2)', textTransform: 'none' }}>
+                ⚠️ Offline Mode
+              </span>
+            )}
             <button onClick={() => navigateTo('home')} style={{ color: 'var(--soft-cream)', background: 'none', textDecoration: view === 'home' ? 'underline' : 'none', fontWeight: view === 'home' ? '700' : '400' }}>Home</button>
             <button onClick={() => navigateTo('admin')} style={{ color: 'var(--soft-cream)', background: 'none', textDecoration: view === 'admin' ? 'underline' : 'none', fontWeight: view === 'admin' ? '700' : '400' }}>Pastor's Admin</button>
             <span style={{ color: 'var(--primary-gold)', borderLeft: '1px solid var(--glass-border)', paddingLeft: '1.5rem' }}>📞 678051791</span>

@@ -16,12 +16,19 @@ os.makedirs("uploads", exist_ok=True)
 app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
 
 # CORS setup for React frontend
+ALLOWED_ORIGINS = [
+    "http://localhost:5173",
+    "https://believers-in-action-mnsg.vercel.app",
+    "*"  # Fallback
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=False,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_origins=ALLOWED_ORIGINS,
+    allow_credentials=True, # Allow cookies/headers
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allow_headers=["X-Admin-Token", "Content-Type", "Authorization", "Accept"],
+    expose_headers=["*"],
 )
 
 # --- Security ---
@@ -58,11 +65,14 @@ DB_CONFIG = {
 
 def get_db_connection():
     try:
+        # Check if DB_HOST is set to avoid connection attempts during mock-only phase
+        if not os.getenv('DB_HOST'):
+            return None
         connection = mysql.connector.connect(**DB_CONFIG)
         if connection.is_connected():
             return connection
     except Error as e:
-        print(f"Error connecting to MySQL: {e}")
+        print(f"[ERROR] MySQL Connection Failed: {e}")
         return None
 
 # Simple SQL initialization (Run this at start)

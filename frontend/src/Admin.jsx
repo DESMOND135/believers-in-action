@@ -14,19 +14,39 @@ const Admin = ({ onSermonAdded }) => {
   const [message, setMessage] = useState('');
   const fileInputRef = React.useRef(null);
 
+  const [backendStatus, setBackendStatus] = useState('checking'); // 'checking', 'online', 'offline'
+
   // Fetch sermons for the admin list
   const fetchSermons = async () => {
     try {
       const response = await fetch(`${API_BASE_URL}/api/sermons`);
-      const data = await response.json();
-      setSermons(data);
+      if (response.ok) {
+        const data = await response.json();
+        setSermons(data);
+        setBackendStatus('online');
+      } else {
+        setBackendStatus('offline');
+      }
     } catch (err) {
       console.error("Error fetching sermons", err);
+      setBackendStatus('offline');
     }
   };
 
   useEffect(() => {
     if (isLoggedIn) fetchSermons();
+    else {
+      // Check status even if not logged in to show warning early
+      const checkStatus = async () => {
+        try {
+          const res = await fetch(`${API_BASE_URL}/`);
+          setBackendStatus(res.ok ? 'online' : 'offline');
+        } catch {
+          setBackendStatus('offline');
+        }
+      };
+      checkStatus();
+    }
   }, [isLoggedIn]);
 
   const handleLogin = (e) => {
@@ -99,11 +119,17 @@ const Admin = ({ onSermonAdded }) => {
         }
         fetchSermons();
       } else {
-        const errorData = await response.json();
-        setMessage(`Action failed: ${errorData.detail || 'Check credentials.'}`);
+        let errorMsg = 'Check credentials.';
+        try {
+          const errorData = await response.json();
+          errorMsg = errorData.detail || errorMsg;
+        } catch (e) {
+          errorMsg = `Server Error (${response.status})`;
+        }
+        setMessage(`Action failed: ${errorMsg}`);
       }
     } catch (err) {
-      setMessage('Error connecting to backend.');
+      setMessage(`Error: ${err.message || 'Connection failed. Check if backend is awake.'}`);
     } finally {
       setUploading(false);
     }
@@ -137,6 +163,11 @@ const Admin = ({ onSermonAdded }) => {
         <div className="glass" style={{ padding: '3rem', width: '400px', textAlign: 'center' }}>
           <h2 style={{ marginBottom: '2rem' }}>UDRICK NIH Admin Access</h2>
           <form onSubmit={handleLogin}>
+            {backendStatus === 'offline' && (
+              <div style={{ background: 'rgba(255,0,0,0.1)', color: '#ff4d4d', padding: '0.8rem', borderRadius: '4px', marginBottom: '1.5rem', fontSize: '0.85rem', border: '1px solid rgba(255,0,0,0.2)' }}>
+                ⚠️ Backend currently unreachable. It might be sleeping or down.
+              </div>
+            )}
             <input 
               type="password" 
               placeholder="Enter Private Key" 

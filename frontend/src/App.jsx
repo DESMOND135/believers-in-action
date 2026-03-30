@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import './index.css';
 import Admin from './Admin';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://believers-in-action-api.onrender.com';
 
 const App = () => {
   const [view, setView] = useState('home'); // 'home' or 'admin' 

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://believers-in-action-api.onrender.com';
 
 const Admin = ({ onSermonAdded }) => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
